@@ -41,15 +41,15 @@ fn main() {
                 let file_contents = fs::read_to_string(path);
                 match file_contents {
                     Ok(code) => {
-                        println!("{:?} {:?}\n{:?}", path, ext.unwrap(), code);
+                        // println!("{:?} {:?}\n{:?}", path, ext.unwrap(), code);
                         // Add one line for final line
                         let lines = (code.matches("\n").count() + 1) as u64;
                         let length = code.len() as u64;
                         stats.lines += lines;
                         stats.chars += length;
                     }
-                    Err(e) => {
-                        println!("{:?}", e); //handled error
+                    Err(_) => {
+                        // println!("{:?}", e); //handled error
                     }
                 }
                 stats.files.code += 1;
