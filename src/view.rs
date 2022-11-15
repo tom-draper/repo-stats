@@ -2,15 +2,20 @@ use crate::Stats;
 use num_format::{Locale, ToFormattedString};
 
 pub fn display_stats(stats: Stats) {
-    print!(
-    "Source files: {}\nSource code lines: {}\nSource code characters: {}\nSource code average line length: {}\nTotal lines: {}\nTotal characters: {}\nTotal average line length: {}\nBinaries {}",
-        stats.files.code.to_formatted_string(&Locale::en),
-        stats.lines.code.to_formatted_string(&Locale::en),
-        stats.chars.code.to_formatted_string(&Locale::en),
-        stats.avg_code_line_len().to_formatted_string(&Locale::en),
-        stats.lines.total.to_formatted_string(&Locale::en),
-        stats.chars.total.to_formatted_string(&Locale::en),
-        stats.avg_total_line_len().to_formatted_string(&Locale::en),
-        stats.files.binaries.to_formatted_string(&Locale::en),
-    );
+    println!("Total files: {}", stats.files.total.to_formatted_string(&Locale::en));
+    println!("Total lines: {}", stats.lines.total.to_formatted_string(&Locale::en));
+    println!("Total characters: {}", stats.chars.total.to_formatted_string(&Locale::en));
+    println!("Total average line length: {}\n", stats.avg_total_line_len().to_formatted_string(&Locale::en));
+
+    println!("Source code files: {}", stats.files.code.to_formatted_string(&Locale::en));
+    println!("Source code lines: {}", stats.lines.code.to_formatted_string(&Locale::en));
+    println!("Source code characters: {}", stats.chars.code.to_formatted_string(&Locale::en));
+    println!("Source code average line length: {}\n", stats.avg_code_line_len().to_formatted_string(&Locale::en));
+
+    println!("Storage files: {}", stats.files.storage.to_formatted_string(&Locale::en));
+    println!("Storage lines: {}", stats.lines.storage.to_formatted_string(&Locale::en));
+    println!("Storage characters: {}", stats.chars.storage.to_formatted_string(&Locale::en));
+    println!("Storage average line length: {}\n", stats.avg_storage_line_len().to_formatted_string(&Locale::en));
+
+    println!("Binaries {}", stats.files.binaries.to_formatted_string(&Locale::en));
 }

@@ -1,7 +1,5 @@
 use std::collections::HashSet;
 
-
-
 pub fn source_code_extensions() -> HashSet<&'static str> {
     return HashSet::from(["py", "js", "ts", "go", "rs", "ada", "lua", "hs", 
     "asm", "c", "cpp", "svelte", "react", "vue", "angular", "r", "action", "java", 

@@ -8,6 +8,7 @@ use walkdir::WalkDir;
 struct CodeCounts {
     total: u64,
     code: u64,
+    storage: u64,
 }
 
 #[derive(Debug)]
@@ -26,30 +27,48 @@ pub struct Stats {
 }
 
 impl Stats {
+    fn avg_total_line_len(&self) -> u64 {
+        if self.lines.total == 0{
+            return 0
+        }
+        self.chars.total / self.lines.total
+    }
+
     fn avg_code_line_len(&self) -> u64 {
+        if self.lines.code == 0{
+            return 0
+        }
         self.chars.code / self.lines.code
     }
-    fn avg_total_line_len(&self) -> u64 {
-        self.chars.total / self.lines.total
+
+    fn avg_storage_line_len(&self) -> u64 {
+        if self.lines.storage == 0{
+            return 0
+        }
+        self.chars.storage / self.lines.storage
     }
 }
 
 fn is_target_file(path: &Path, target_dir: &HashSet<&str>, ignore_dir: &HashSet<&str>) -> bool {
     let _path = path.to_str().unwrap();
-    
-    for target in target_dir {
-        if !_path.contains(*target) {
-            return false
+
+    if !target_dir.is_empty() {
+        for target in target_dir {
+            if !_path.contains(*target) {
+                return false;
+            }
         }
     }
 
-    for ignore in ignore_dir {
-        if _path.contains(*ignore) {
-            return false
+    if !ignore_dir.is_empty() {
+        for ignore in ignore_dir {
+            if _path.contains(*ignore) {
+                return false;
+            }
         }
     }
 
-    return true
+    return true;
 }
 
 fn main() {
@@ -60,16 +79,24 @@ fn main() {
             binaries: 0,
             storage: 0,
         },
-        lines: CodeCounts { total: 0, code: 0 },
-        chars: CodeCounts { total: 0, code: 0 },
+        lines: CodeCounts {
+            total: 0,
+            code: 0,
+            storage: 0,
+        },
+        chars: CodeCounts {
+            total: 0,
+            code: 0,
+            storage: 0,
+        },
     };
 
     let ignore_dir = HashSet::from(["target", ".vscode"]);
     let target_dir = HashSet::from(["src"]);
+
     let source_code_exts = extensions::source_code_extensions();
     let binary_exts = extensions::binary_extensions();
     let storage_exts = extensions::storage_extensions();
-
 
     for f in WalkDir::new(".").into_iter().filter_map(|f| f.ok()) {
         if f.metadata().unwrap().is_file() {
@@ -79,7 +106,6 @@ fn main() {
 
             println!("{:?}", path);
             if is_target_file(path, &target_dir, &ignore_dir) {
-                // if path.extension().is_some() {
                 let file_contents = fs::read_to_string(path);
                 if file_contents.is_ok() {
                     let code = file_contents.unwrap();
@@ -91,10 +117,14 @@ fn main() {
                             stats.lines.code += lines;
                             let length = code.len() as u64;
                             stats.chars.code += length;
-                        } else if binary_exts.contains(ext) {
-                            stats.files.binaries += 1;
                         } else if storage_exts.contains(ext) {
                             stats.files.storage += 1;
+                            let lines = (code.matches("\n").count() + 1) as u64;
+                            stats.lines.storage += lines;
+                            let length = code.len() as u64;
+                            stats.chars.storage += length;
+                        } else if binary_exts.contains(ext) {
+                            stats.files.binaries += 1;
                         }
                     }
                     // Add one line for final line
