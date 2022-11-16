@@ -1,5 +1,7 @@
 extern crate walkdir;
-use std::{collections::HashSet, fs, path::Path};
+extern crate bytesize;
+use bytesize::ByteSize;
+use std::{collections::{HashSet, HashMap}, fs, path::Path};
 mod extensions;
 mod view;
 use walkdir::WalkDir;
@@ -18,12 +20,21 @@ struct FileCounts {
 }
 
 #[derive(Debug)]
+struct FileSizeCounts {
+    total: ByteSize,
+    code: ByteSize,
+    binaries: ByteSize,
+}
+
+
+#[derive(Debug)]
 pub struct Stats {
     files: FileCounts,
-    memory: FileCounts,
+    memory: FileSizeCounts,
     lines: CodeCounts,
     chars: CodeCounts,
     whitespace: CodeCounts,
+    extensions: HashMap<String, u64>
 }
 
 impl Default for Stats {
@@ -34,31 +45,32 @@ impl Default for Stats {
                 code: 0,
                 binaries: 0,
             },
-            memory: FileCounts {
-                total: 0,
-                code: 0,
-                binaries: 0,
+            memory: FileSizeCounts {
+                total: ByteSize(0),
+                code: ByteSize(0),
+                binaries: ByteSize(0),
             },
             lines: CodeCounts { total: 0, code: 0 },
             chars: CodeCounts { total: 0, code: 0 },
             whitespace: CodeCounts { total: 0, code: 0 },
+            extensions: HashMap::new()
         }
     }
 }
 
 impl Stats {
-    fn avg_total_line_len(&self) -> u64 {
+    fn avg_total_line_len(&self) -> f32 {
         if self.lines.total == 0 {
-            return 0;
+            return 0.0;
         }
-        self.chars.total / self.lines.total
+        self.chars.total as f32 / self.lines.total as f32
     }
 
-    fn avg_code_line_len(&self) -> u64 {
+    fn avg_code_line_len(&self) -> f32 {
         if self.lines.code == 0 {
-            return 0;
+            return 0.0;
         }
-        self.chars.code / self.lines.code
+        self.chars.code as f32 / self.lines.code as f32
     }
 }
 
@@ -98,7 +110,8 @@ fn main() {
         if metadata.is_file() {
             let path = f.path();
             stats.files.total += 1;
-            stats.memory.total += metadata.len();
+            let filesize = ByteSize(metadata.len());
+            stats.memory.total += filesize;
 
             // println!("{:?}", path);
             if is_target_file(path, &target_dir, &ignore_dir) {
@@ -119,10 +132,11 @@ fn main() {
                             stats.lines.code += lines;
                             stats.chars.code += length;
                             stats.whitespace.code += whitespace;
-                            stats.memory.code += metadata.len();
+                            stats.memory.code += filesize;
+                            stats.extensions.entry(ext.to_owned()).and_modify(|ext| *ext += filesize.as_u64()).or_insert(0);
                         } else if binary_exts.contains(ext) {
                             stats.files.binaries += 1;
-                            stats.memory.binaries += metadata.len();
+                            stats.memory.binaries += filesize;
                         }
                     }
                 }

@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 walkdir = "2.3.2"
 num-format = "0.4.3"
+bytesize = "1.1.0"
