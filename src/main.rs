@@ -26,7 +26,6 @@ struct FileSizeCounts {
     binaries: ByteSize,
 }
 
-
 #[derive(Debug)]
 pub struct Stats {
     files: FileCounts,
@@ -111,7 +110,6 @@ fn main() {
             let filesize = ByteSize(metadata.len());
             stats.memory.total += filesize;
 
-            // println!("{:?}", path);
             if is_target_file(path, &target_dir, &ignore_dir) {
                 let file_contents = fs::read_to_string(path);
                 if file_contents.is_ok() {

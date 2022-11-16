@@ -6,7 +6,7 @@ pub struct Extensions<'a> {
 
 impl Extensions<'_> {
     pub fn is_source_code(&self, ext: &str) -> bool {
-        self.extensions.values().any(|&val| *val == *ext)
+        self.extensions.keys().any(|&val| *val == *ext)
     }
 
     pub fn is_binary(&self, ext: &str) -> bool {
