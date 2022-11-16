@@ -15,7 +15,9 @@ pub fn display_stats(stats: Stats) {
     println!("---- Source code ------------------");
     println!(" Languages:");
     let total: u64 = stats.extensions.values().sum();
-    for (extension, size) in &stats.extensions {
+    let mut count_vec: Vec<_> = stats.extensions.iter().collect();
+    count_vec.sort_by(|a, b| b.1.cmp(a.1));
+    for (extension, size) in count_vec {
         let per = (*size as f32 / total as f32) * 100.0;
         println!("   {}: {:.2}%", extension, per);
     }

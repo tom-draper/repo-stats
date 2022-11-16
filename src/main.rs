@@ -99,8 +99,8 @@ fn main() {
     let mut stats = Stats::default();
 
     let extensions = extensions::Extensions::default();
-    let ignore_dir = HashSet::from([]);
     let target_dir = HashSet::from([]);
+    let ignore_dir = HashSet::from(["target"]);
 
     for f in WalkDir::new(".").into_iter().filter_map(|f| f.ok()) {
         let metadata = f.metadata().unwrap();
@@ -129,7 +129,7 @@ fn main() {
                             stats.chars.code += length;
                             stats.whitespace.code += whitespace;
                             stats.memory.code += filesize;
-                            stats.extensions.entry(ext.to_owned()).and_modify(|ext| *ext += filesize.as_u64()).or_insert(0);
+                            stats.extensions.entry(ext.to_owned()).and_modify(|ext| *ext += length).or_insert(0);
                         } else if extensions.is_binary(ext) {
                             stats.files.binaries += 1;
                             stats.memory.binaries += filesize;
