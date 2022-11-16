@@ -26,17 +26,37 @@ pub struct Stats {
     whitespace: CodeCounts,
 }
 
+impl Default for Stats {
+    fn default() -> Self {
+        Self {
+            files: FileCounts {
+                total: 0,
+                code: 0,
+                binaries: 0,
+            },
+            memory: FileCounts {
+                total: 0,
+                code: 0,
+                binaries: 0,
+            },
+            lines: CodeCounts { total: 0, code: 0 },
+            chars: CodeCounts { total: 0, code: 0 },
+            whitespace: CodeCounts { total: 0, code: 0 },
+        }
+    }
+}
+
 impl Stats {
     fn avg_total_line_len(&self) -> u64 {
-        if self.lines.total == 0{
-            return 0
+        if self.lines.total == 0 {
+            return 0;
         }
         self.chars.total / self.lines.total
     }
 
     fn avg_code_line_len(&self) -> u64 {
-        if self.lines.code == 0{
-            return 0
+        if self.lines.code == 0 {
+            return 0;
         }
         self.chars.code / self.lines.code
     }
@@ -65,30 +85,7 @@ fn is_target_file(path: &Path, target_dir: &HashSet<&str>, ignore_dir: &HashSet<
 }
 
 fn main() {
-    let mut stats = Stats {
-        files: FileCounts {
-            total: 0,
-            code: 0,
-            binaries: 0,
-        },
-        memory: FileCounts {
-            total: 0,
-            code: 0,
-            binaries: 0,
-        },
-        lines: CodeCounts {
-            total: 0,
-            code: 0,
-        },
-        chars: CodeCounts {
-            total: 0,
-            code: 0,
-        },
-        whitespace: CodeCounts {
-            total: 0,
-            code: 0,
-        },
-    };
+    let mut stats = Stats::default();
 
     let ignore_dir = HashSet::from([]);
     let target_dir = HashSet::from([]);
@@ -101,7 +98,7 @@ fn main() {
         if metadata.is_file() {
             let path = f.path();
             stats.files.total += 1;
-            stats.memory.total += metadata.len(); 
+            stats.memory.total += metadata.len();
 
             // println!("{:?}", path);
             if is_target_file(path, &target_dir, &ignore_dir) {
@@ -110,7 +107,7 @@ fn main() {
                     let code = file_contents.unwrap();
                     // Add one line for final line
                     let lines = (code.matches("\n").count() + 1) as u64;
-                    let whitespace = code.matches(' ').count()as u64;
+                    let whitespace = code.matches(' ').count() as u64;
                     let length = code.len() as u64;
                     stats.lines.total += lines;
                     stats.chars.total += length;
@@ -122,10 +119,10 @@ fn main() {
                             stats.lines.code += lines;
                             stats.chars.code += length;
                             stats.whitespace.code += whitespace;
-                            stats.memory.code += metadata.len(); 
+                            stats.memory.code += metadata.len();
                         } else if binary_exts.contains(ext) {
                             stats.files.binaries += 1;
-                            stats.memory.binaries += metadata.len(); 
+                            stats.memory.binaries += metadata.len();
                         }
                     }
                 }

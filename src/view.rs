@@ -18,5 +18,5 @@ pub fn display_stats(stats: Stats) {
     println!("Whitespace: {}%", (stats.chars.code / stats.whitespace.code).to_formatted_string(&Locale::en));
     println!("Memory: {} KB\n", (stats.memory.code/1024).to_formatted_string(&Locale::en));
 
-    println!("Binaries: {}", stats.files.binaries.to_formatted_string(&Locale::en));
+    println!("Binaries: {} ({} KB)", stats.files.binaries.to_formatted_string(&Locale::en), (stats.memory.binaries/1024).to_formatted_string(&Locale::en));
 }
