@@ -17,7 +17,7 @@ pub fn display_stats(stats: Stats) {
     let total: u64 = stats.extensions.values().sum();
     for (extension, size) in &stats.extensions {
         let per = (*size as f32 / total as f32) * 100.0;
-        println!("   {extension}: {per}%");
+        println!("   {}: {:.2}%", extension, per);
     }
     println!(" Files: {:>26}", stats.files.code.to_formatted_string(&Locale::en));
     println!(" Lines: {:>26}", stats.lines.code.to_formatted_string(&Locale::en));

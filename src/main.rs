@@ -99,11 +99,9 @@ fn is_target_file(path: &Path, target_dir: &HashSet<&str>, ignore_dir: &HashSet<
 fn main() {
     let mut stats = Stats::default();
 
+    let extensions = extensions::Extensions::default();
     let ignore_dir = HashSet::from([]);
     let target_dir = HashSet::from([]);
-
-    let source_code_exts = extensions::source_code_extensions();
-    let binary_exts = extensions::binary_extensions();
 
     for f in WalkDir::new(".").into_iter().filter_map(|f| f.ok()) {
         let metadata = f.metadata().unwrap();
@@ -127,14 +125,15 @@ fn main() {
                     stats.whitespace.total += length;
                     if path.extension().is_some() {
                         let ext = path.extension().unwrap().to_str().unwrap();
-                        if source_code_exts.contains(ext) {
+                        if extensions.is_source_code(ext) {
                             stats.files.code += 1;
                             stats.lines.code += lines;
                             stats.chars.code += length;
                             stats.whitespace.code += whitespace;
                             stats.memory.code += filesize;
                             stats.extensions.entry(ext.to_owned()).and_modify(|ext| *ext += filesize.as_u64()).or_insert(0);
-                        } else if binary_exts.contains(ext) {
+                            println!("{ext}")
+                        } else if extensions.is_binary(ext) {
                             stats.files.binaries += 1;
                             stats.memory.binaries += filesize;
                         }
