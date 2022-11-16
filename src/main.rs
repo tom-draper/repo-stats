@@ -132,7 +132,6 @@ fn main() {
                             stats.whitespace.code += whitespace;
                             stats.memory.code += filesize;
                             stats.extensions.entry(ext.to_owned()).and_modify(|ext| *ext += filesize.as_u64()).or_insert(0);
-                            println!("{ext}")
                         } else if extensions.is_binary(ext) {
                             stats.files.binaries += 1;
                             stats.memory.binaries += filesize;
