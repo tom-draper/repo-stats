@@ -8,7 +8,6 @@ use walkdir::WalkDir;
 struct CodeCounts {
     total: u64,
     code: u64,
-    storage: u64,
 }
 
 #[derive(Debug)]
@@ -16,7 +15,6 @@ struct FileCounts {
     total: u64,
     code: u64,
     binaries: u64,
-    storage: u64,
 }
 
 #[derive(Debug)]
@@ -25,6 +23,7 @@ pub struct Stats {
     memory: FileCounts,
     lines: CodeCounts,
     chars: CodeCounts,
+    whitespace: CodeCounts,
 }
 
 impl Stats {
@@ -40,13 +39,6 @@ impl Stats {
             return 0
         }
         self.chars.code / self.lines.code
-    }
-
-    fn avg_storage_line_len(&self) -> u64 {
-        if self.lines.storage == 0{
-            return 0
-        }
-        self.chars.storage / self.lines.storage
     }
 }
 
@@ -78,23 +70,23 @@ fn main() {
             total: 0,
             code: 0,
             binaries: 0,
-            storage: 0,
         },
         memory: FileCounts {
             total: 0,
             code: 0,
             binaries: 0,
-            storage: 0,
         },
         lines: CodeCounts {
             total: 0,
             code: 0,
-            storage: 0,
         },
         chars: CodeCounts {
             total: 0,
             code: 0,
-            storage: 0,
+        },
+        whitespace: CodeCounts {
+            total: 0,
+            code: 0,
         },
     };
 
@@ -103,7 +95,6 @@ fn main() {
 
     let source_code_exts = extensions::source_code_extensions();
     let binary_exts = extensions::binary_extensions();
-    let storage_exts = extensions::storage_extensions();
 
     for f in WalkDir::new(".").into_iter().filter_map(|f| f.ok()) {
         let metadata = f.metadata().unwrap();
@@ -119,21 +110,19 @@ fn main() {
                     let code = file_contents.unwrap();
                     // Add one line for final line
                     let lines = (code.matches("\n").count() + 1) as u64;
+                    let whitespace = code.matches(' ').count()as u64;
                     let length = code.len() as u64;
                     stats.lines.total += lines;
                     stats.chars.total += length;
+                    stats.whitespace.total += length;
                     if path.extension().is_some() {
                         let ext = path.extension().unwrap().to_str().unwrap();
                         if source_code_exts.contains(ext) {
                             stats.files.code += 1;
                             stats.lines.code += lines;
                             stats.chars.code += length;
+                            stats.whitespace.code += whitespace;
                             stats.memory.code += metadata.len(); 
-                        } else if storage_exts.contains(ext) {
-                            stats.files.storage += 1;
-                            stats.lines.storage += lines;
-                            stats.chars.storage += length;
-                            stats.memory.storage += metadata.len(); 
                         } else if binary_exts.contains(ext) {
                             stats.files.binaries += 1;
                             stats.memory.binaries += metadata.len(); 
