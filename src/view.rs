@@ -8,7 +8,7 @@ pub fn display_stats(stats: Stats) {
     println!(" Lines: {:>26}", stats.lines.total.to_formatted_string(&Locale::en));
     println!(" Characters: {:>21}", stats.chars.total.to_formatted_string(&Locale::en));
     println!(" Average line length: {:>12.1}", stats.avg_total_line_len());
-    println!(" Whitespace: {:>20}%", (stats.chars.total / stats.whitespace.total));
+    println!(" Whitespace: {:>20}%", (stats.whitespace.total / stats.chars.total));
     println!(" Memory: {:>25}", stats.memory.total);
     println!("-----------------------------------\n");
 
@@ -23,7 +23,7 @@ pub fn display_stats(stats: Stats) {
     println!(" Lines: {:>26}", stats.lines.code.to_formatted_string(&Locale::en));
     println!(" Characters: {:>21}", stats.chars.code.to_formatted_string(&Locale::en));
     println!(" Average line length: {:>12.1}", stats.avg_code_line_len());
-    println!(" Whitespace: {:>20}%", (stats.chars.code / stats.whitespace.code));
+    println!(" Whitespace: {:>20}%", (stats.whitespace.code / stats.chars.code));
     println!(" Memory: {:>25}", stats.memory.code);
     println!("-----------------------------------\n");
 
