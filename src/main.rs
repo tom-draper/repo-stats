@@ -46,6 +46,25 @@ impl Default for Total {
     }
 }
 
+impl Total {
+    fn inc(
+        &mut self,
+        files: u64,
+        memory: ByteSize,
+        lines: u64,
+        chars: u64,
+        whitespace: u64,
+        cr: u64,
+    ) {
+        self.files += files;
+        self.memory += memory;
+        self.lines += lines;
+        self.chars += chars;
+        self.whitespace += whitespace;
+        self.cr += cr;
+    }
+}
+
 #[derive(Debug)]
 struct Binary {
     files: u64,
@@ -130,26 +149,18 @@ fn main() {
                     let cr = (code.matches("\r").count() + 1) as u64;
                     let whitespace = code.matches(' ').count() as u64;
                     let length = code.len() as u64;
-                    stats.total.lines += lines;
-                    stats.total.chars += length;
-                    stats.total.whitespace += length;
-                    stats.total.cr += cr;
+                    stats
+                        .total
+                        .inc(0, ByteSize(0), lines, length, whitespace, cr);
                     if path.extension().is_some() {
                         let ext = path.extension().unwrap().to_str().unwrap();
                         if extensions.is_source_code(ext) {
-                            stats.code.total.files += 1;
-                            stats.code.total.lines += lines;
-                            stats.code.total.chars += length;
-                            stats.code.total.whitespace += whitespace;
-                            stats.code.total.cr += cr;
-                            let mut language =
-                                stats.code.languages.entry(ext.to_owned()).or_default();
-                            language.files += 1;
-                            language.lines += lines;
-                            language.chars += length;
-                            language.whitespace += whitespace;
-                            language.memory += filesize;
-                            language.cr += cr;
+                            stats
+                                .code
+                                .total
+                                .inc(1, filesize, lines, length, whitespace, cr);
+                            let language = stats.code.languages.entry(ext.to_owned()).or_default();
+                            language.inc(1, filesize, lines, length, whitespace, cr);
                         } else if extensions.is_binary(ext) {
                             stats.binary.files += 1;
                             stats.binary.memory += filesize;
