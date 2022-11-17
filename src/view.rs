@@ -1,21 +1,25 @@
-use std::collections::HashMap;
-
-use crate::{Stats, extensions};
+use crate::{Stats, Total};
 use num_format::{Locale, ToFormattedString};
+
+fn display_total(total: &Total, indent: i32) {
+    let padding = (0..indent).map(|_| " ").collect::<String>();
+    println!("{}Files: {:>25}", padding, total.files.to_formatted_string(&Locale::en));
+    println!("{}Lines: {:>25}", padding, total.lines.to_formatted_string(&Locale::en));
+    println!("{}Characters: {:>20}", padding, total.chars.to_formatted_string(&Locale::en));
+    println!("{}Average line length: {:>11.1}", padding, total.avg_line_len());
+    println!("{}Whitespace: {:>19}%", padding, total.per_whitespace());
+    println!("{}Memory: {:>24}", padding, total.memory);
+}
 
 pub fn display_stats(stats: Stats) {
     println!("---- Total -----------------------");
-    println!(" Files: {:>25}", stats.total.files.to_formatted_string(&Locale::en));
-    println!(" Lines: {:>25}", stats.total.lines.to_formatted_string(&Locale::en));
-    println!(" Characters: {:>20}", stats.total.chars.to_formatted_string(&Locale::en));
-    println!(" Average line length: {:>11.1}", stats.total.avg_line_len());
-    println!(" Whitespace: {:>19}%", stats.total.per_whitespace());
-    println!(" Memory: {:>24}", stats.total.memory);
+    display_total(&stats.total, 1);
     println!("----------------------------------\n");
-
+    
     println!("---- Source code -----------------");
     println!(" Languages:");
 
+    // Calc total chars across all languages
     let mut total_chars: u64 = 0;
     for (_, total) in &stats.code.languages {
         total_chars += total.chars;
@@ -27,12 +31,7 @@ pub fn display_stats(stats: Stats) {
     for (extension, language) in count_vec {
         let per = (language.chars as f32 / total_chars as f32) * 100.0;
         println!(" .{}: {:.2}%", extension, per);
-        println!("     Files: {:>25}", language.files.to_formatted_string(&Locale::en));
-        println!("     Lines: {:>25}", language.lines.to_formatted_string(&Locale::en));
-        println!("     Characters: {:>20}", language.chars.to_formatted_string(&Locale::en));
-        println!("     Average line length: {:>11.1}", language.avg_line_len());
-        println!("     Whitespace: {:>19}%", language.per_whitespace());
-        println!("     Memory: {:>24}", language.memory);
+        display_total(language, 5);
     }
     println!("----------------------------------\n");
 
