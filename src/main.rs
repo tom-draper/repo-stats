@@ -1,7 +1,11 @@
-extern crate walkdir;
 extern crate bytesize;
+extern crate walkdir;
 use bytesize::ByteSize;
-use std::{collections::{HashSet, HashMap}, fs, path::Path};
+use std::{
+    collections::{HashMap, HashSet},
+    fs,
+    path::Path,
+};
 mod extensions;
 mod view;
 use walkdir::WalkDir;
@@ -10,7 +14,7 @@ use walkdir::WalkDir;
 pub struct Stats {
     total: Total,
     code: Code,
-    binary: Binary
+    binary: Binary,
 }
 
 #[derive(Debug)]
@@ -24,12 +28,20 @@ struct Total {
 
 #[derive(Debug)]
 struct Code {
-    files: u64,
-    memory: ByteSize,
-    lines: u64,
-    chars: u64,
-    whitespace: u64,
-    extensions: HashMap<String, u64>,
+    total: Total,
+    languages: HashMap<String, Total>,
+}
+
+impl Default for Total {
+    fn default() -> Self {
+        Self {
+            files: 0,
+            memory: ByteSize(0),
+            lines: 0,
+            chars: 0,
+            whitespace: 0,
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -37,7 +49,6 @@ struct Binary {
     files: u64,
     memory: ByteSize,
 }
-
 
 impl Default for Stats {
     fn default() -> Self {
@@ -49,37 +60,31 @@ impl Default for Stats {
                 chars: 0,
                 whitespace: 0,
             },
-
             code: Code {
-                files: 0,
-                memory: ByteSize(0),
-                lines: 0,
-                chars: 0,
-                whitespace: 0,
-                extensions: HashMap::new(),
+                total: Total::default(),
+                languages: HashMap::new(),
             },
             binary: Binary {
                 files: 0,
                 memory: ByteSize(0),
-            }
+            },
         }
     }
 }
 
-
-impl Stats {
-    fn avg_total_line_len(&self) -> f32 {
-        if self.total.lines == 0 {
+impl Total {
+    fn avg_line_len(&self) -> f32 {
+        if self.lines == 0 {
             return 0.0;
         }
-        self.total.chars as f32 / self.total.lines as f32
+        self.chars as f32 / self.lines as f32
     }
 
-    fn avg_code_line_len(&self) -> f32 {
-        if self.code.lines == 0 {
+    fn per_whitespace(&self) -> f32 {
+        if self.chars == 0 {
             return 0.0;
         }
-        self.code.chars as f32 / self.code.lines as f32
+        self.whitespace as f32 / self.chars as f32
     }
 }
 
@@ -134,12 +139,17 @@ fn main() {
                     if path.extension().is_some() {
                         let ext = path.extension().unwrap().to_str().unwrap();
                         if extensions.is_source_code(ext) {
-                            stats.code.files += 1;
-                            stats.code.lines += lines;
-                            stats.code.chars += length;
-                            stats.code.whitespace += whitespace;
-                            stats.code.memory += filesize;
-                            stats.code.extensions.entry(ext.to_owned()).and_modify(|ext| *ext += length).or_insert(0);
+                            stats.code.total.files += 1;
+                            stats.code.total.lines += lines;
+                            stats.code.total.chars += length;
+                            stats.code.total.whitespace += whitespace;
+                            let mut language =
+                                stats.code.languages.entry(ext.to_owned()).or_default();
+                            language.files += 1;
+                            language.lines += lines;
+                            language.chars += length;
+                            language.whitespace += whitespace;
+                            language.memory += filesize;
                         } else if extensions.is_binary(ext) {
                             stats.binary.files += 1;
                             stats.binary.memory += filesize;
