@@ -24,6 +24,7 @@ struct Total {
     lines: u64,
     chars: u64,
     whitespace: u64,
+    cr: u64,
 }
 
 #[derive(Debug)]
@@ -40,6 +41,7 @@ impl Default for Total {
             lines: 0,
             chars: 0,
             whitespace: 0,
+            cr: 0,
         }
     }
 }
@@ -53,13 +55,7 @@ struct Binary {
 impl Default for Stats {
     fn default() -> Self {
         Self {
-            total: Total {
-                files: 0,
-                memory: ByteSize(0),
-                lines: 0,
-                chars: 0,
-                whitespace: 0,
-            },
+            total: Total::default(),
             code: Code {
                 total: Total::default(),
                 languages: HashMap::new(),
@@ -84,7 +80,7 @@ impl Total {
         if self.chars == 0 {
             return 0.0;
         }
-        self.whitespace as f32 / self.chars as f32
+        (self.whitespace as f32 / self.chars as f32) * 100.0
     }
 }
 
@@ -131,11 +127,13 @@ fn main() {
                     let code = file_contents.unwrap();
                     // Add one line for final line
                     let lines = (code.matches("\n").count() + 1) as u64;
+                    let cr = (code.matches("\r").count() + 1) as u64;
                     let whitespace = code.matches(' ').count() as u64;
                     let length = code.len() as u64;
                     stats.total.lines += lines;
                     stats.total.chars += length;
                     stats.total.whitespace += length;
+                    stats.total.cr += cr;
                     if path.extension().is_some() {
                         let ext = path.extension().unwrap().to_str().unwrap();
                         if extensions.is_source_code(ext) {
@@ -143,6 +141,7 @@ fn main() {
                             stats.code.total.lines += lines;
                             stats.code.total.chars += length;
                             stats.code.total.whitespace += whitespace;
+                            stats.code.total.cr += cr;
                             let mut language =
                                 stats.code.languages.entry(ext.to_owned()).or_default();
                             language.files += 1;
@@ -150,6 +149,7 @@ fn main() {
                             language.chars += length;
                             language.whitespace += whitespace;
                             language.memory += filesize;
+                            language.cr += cr;
                         } else if extensions.is_binary(ext) {
                             stats.binary.files += 1;
                             stats.binary.memory += filesize;

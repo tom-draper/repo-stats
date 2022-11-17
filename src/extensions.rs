@@ -10,13 +10,14 @@ impl Extensions<'_> {
     }
 
     pub fn is_binary(&self, ext: &str) -> bool {
-        HashSet::from(["bin", "exe", "binary", "bat"]).contains(ext)
+        HashSet::from(["bin", "dat", "exe", "binary"]).contains(ext)
     }
 }
 
 impl Default for Extensions<'_> {
     fn default() -> Self {
         Self {
+            // ext -> language maps sourced from https://github.com/jonschlinkert/lang-map
             extensions: HashMap::from([
                 ("1", "groff"),
                 ("2", "groff"),
