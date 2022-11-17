@@ -2,38 +2,51 @@ use crate::{Stats, Total};
 use num_format::{Locale, ToFormattedString};
 
 fn display_total(total: &Total, indent: i32) {
+    let width = 30 - indent as usize;
     let padding = (0..indent).map(|_| " ").collect::<String>();
-    println!("{}Files: {:>25}", padding, total.files.to_formatted_string(&Locale::en));
-    println!("{}Lines: {:>25}", padding, total.lines.to_formatted_string(&Locale::en));
-    println!("{}Characters: {:>20}", padding, total.chars.to_formatted_string(&Locale::en));
-    println!("{}Average line length: {:>11.1}", padding, total.avg_line_len());
-    println!("{}Whitespace: {:>19}%", padding, total.per_whitespace());
-    println!("{}Memory: {:>24}", padding, total.memory);
+    println!("{}Files: {:>width$}", padding, total.files.to_formatted_string(&Locale::en), width=width);
+    println!("{}Lines: {:>width$}", padding, total.lines.to_formatted_string(&Locale::en), width=width);
+    println!("{}Characters: {:>width$}", padding, total.chars.to_formatted_string(&Locale::en), width=width-5);
+    println!("{}Average line length: {:>width$.1}", padding, total.avg_line_len(), width=width-14);
+    println!("{}Whitespace: {:>width$}%", padding, total.per_whitespace(), width=width-6);
+    println!("{}Memory: {:>width$}", padding, total.memory, width=width-1);
 }
 
 pub fn display_stats(stats: Stats) {
-    println!("---- Total -----------------------");
-    display_total(&stats.total, 1);
-    println!("----------------------------------\n");
+    if stats.total.files > 0 {
+        println!("---- Total ---------------------------");
+        display_total(&stats.total, 1);
+        println!("--------------------------------------\n");
+    } else {
+        println!("No files found.")
+    }
     
-    println!("---- Source code -----------------");
-    println!(" Languages:");
 
-    // Calc total chars across all languages
-    let mut total_chars: u64 = 0;
-    for (_, total) in &stats.code.languages {
-        total_chars += total.chars;
+    if stats.code.total.files > 0 {
+        println!("---- Source code ---------------------");
+        println!(" Languages:");
+        
+        // Calc total chars across all languages
+        let mut total_chars: u64 = 0;
+        for (_, total) in &stats.code.languages {
+            total_chars += total.chars;
+        }
+        
+        let mut count_vec: Vec<_> = stats.code.languages.iter().collect();
+        count_vec.sort_by(|a, b| b.1.chars.cmp(&a.1.chars));
+        
+        for (extension, language) in count_vec {
+            let per = (language.chars as f32 / total_chars as f32) * 100.0;
+            println!(" .{}: {:.2}%", extension, per);
+            display_total(language, 5);
+        }
+        println!("--------------------------------------\n");
     }
-
-    let mut count_vec: Vec<_> = stats.code.languages.iter().collect();
-    count_vec.sort_by(|a, b| b.1.chars.cmp(&a.1.chars));
-
-    for (extension, language) in count_vec {
-        let per = (language.chars as f32 / total_chars as f32) * 100.0;
-        println!(" .{}: {:.2}%", extension, per);
-        display_total(language, 5);
+    
+    if stats.binary.files > 0 {
+        println!("---- Binaries ------------------------");
+        println!(" Files: {}", stats.binary.files.to_formatted_string(&Locale::en));
+        println!(" Memory: {}", stats.binary.memory);
+        println!("--------------------------------------\n");
     }
-    println!("----------------------------------\n");
-
-    println!("Binaries: {} ({})", stats.binary.files.to_formatted_string(&Locale::en), stats.binary.memory);
 }
