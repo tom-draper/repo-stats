@@ -23,7 +23,7 @@ repo-stats
 
 #### Ignore directory
 
-To ignore a specific directory, use the `-i` or `--ignore` flag followed by the name of the directory to ignore. Any directory path containing this directory name will be ignored.
+A specific directory can be ignored with the `-i` or `--ignore` flag followed by the name of the directory to ignore. Any directory path containing this directory name will be ignored.
 
 ```bash
 repo-stats -i bin
@@ -37,7 +37,7 @@ repo-stats -i bin,target,.vscode
 
 #### Target directory
 
-To target a specific directory, use the '-t' or '--target' flag followed by the name of the directory to target. Only paths containing this target directory will be used.
+A specific directory can be targeted using the '-t' or '--target' flag followed by the name of the directory to target. Only paths containing this target directory will be used.
 
 ```bash
 repo-stats -t src
@@ -45,7 +45,7 @@ repo-stats -t src
 
 #### Remote repository
 
-To run on a remote GitHub repository, specify the repo name with the `-r` or `--remote` flag. The repo name must be specified in the form <user>/<repo>.
+Project statistics can also be displayed for a remote repository. Simply specify the name of the remote GitHub repo with the `-r` or `--remote` flag. The repo name must be specified in the form <user>/<repo> and the repo must be public.
 
 ```bath
 repo-stats -r tom-draper/repo-stats
