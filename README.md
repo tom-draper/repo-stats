@@ -14,8 +14,7 @@ This builds the executable in `/target/release`.
 
 ## Usage
 
-To run in the current directory, checking all files, simply run the program without args.
-When the program is run without arguments, it will run in the current directory, checking all subfolders recursively.
+When the program is run without arguments, the process will be started in the current directory, checking all subfolders recursively and logging all files.
 
 ```bash
 repo-stats
