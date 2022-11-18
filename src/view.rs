@@ -80,7 +80,7 @@ pub fn display_stats(stats: Stats) {
     }
 
     if stats.binary.files > 0 {
-        println!("---- Binaries ------------------------");
+        println!("---- Binaries ----------------------");
         println!(
             " Files: {}",
             stats.binary.files.to_formatted_string(&Locale::en)

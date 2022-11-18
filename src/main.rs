@@ -7,8 +7,9 @@ use std::{
     path::Path,
 };
 mod extensions;
-mod view;
 mod remote;
+mod view;
+use clap::Parser;
 use walkdir::WalkDir;
 
 #[derive(Debug)]
@@ -107,6 +108,7 @@ impl Total {
 fn is_target_file(path: &Path, target_dir: &HashSet<&str>, ignore_dir: &HashSet<&str>) -> bool {
     let _path = path.to_str().unwrap();
 
+    // False if not target
     if !target_dir.is_empty() {
         for target in target_dir {
             if !_path.contains(*target) {
@@ -115,6 +117,7 @@ fn is_target_file(path: &Path, target_dir: &HashSet<&str>, ignore_dir: &HashSet<
         }
     }
 
+    // False if ignored
     if !ignore_dir.is_empty() {
         for ignore in ignore_dir {
             if _path.contains(*ignore) {
@@ -126,21 +129,9 @@ fn is_target_file(path: &Path, target_dir: &HashSet<&str>, ignore_dir: &HashSet<
     return true;
 }
 
-fn main() {
-    let repo = "tom-draper/typing-speed";
-    remote::clone_repo(repo);
-    let repo_name = repo.split("/").collect::<Vec<&str>>()[1];
-    let repo_dir: &str = &format!("temp-{}", repo_name);
-
+fn repo_stats(target_dir: HashSet<&str>, ignore_dir: HashSet<&str>) -> Stats {
     let mut stats = Stats::default();
-
     let extensions = extensions::Extensions::default();
-    let mut target_dir = HashSet::from([]);
-    if repo.len() > 0{
-        target_dir = HashSet::from([repo_dir]);
-    }
-    let ignore_dir = HashSet::from(["target"]);
-
     for f in WalkDir::new(".").into_iter().filter_map(|f| f.ok()) {
         let metadata = f.metadata().unwrap();
         if metadata.is_file() {
@@ -179,8 +170,55 @@ fn main() {
             }
         }
     }
+    stats
+}
 
-    if repo.len() > 0 {
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+    #[arg(short, long, default_value(""))]
+    repo: String,
+
+    #[arg(short, long, default_value(""))]
+    ignore: String,
+
+    #[arg(short, long, default_value(""))]
+    target: String,
+}
+
+fn main() {
+    let args = Args::parse();
+
+    // Build ignore and target dirs from any args
+    let mut ignore_dir = HashSet::from([]);
+    let mut target_dir = HashSet::from([]);
+    if args.ignore != "" {
+        ignore_dir = args.ignore.split(",").collect();
+    }
+    if args.target != "" {
+        target_dir = args.ignore.split(",").collect();
+    }
+    
+    // Build repo info if repo arg has been specified
+    let mut repo_name: &str = &args.repo;
+    if repo_name.contains("/"){
+        repo_name = args.repo.split("/").collect::<Vec<&str>>()[1];
+    } else if repo_name != "" {
+        println!("Error: Repo name invalid\nRequired pattern: <user>/<repo>");
+        return
+    }
+    let repo_dir: &str = &format!("temp-{}", repo_name);
+    
+    // If repo has been specified, use as target dir instead
+    if repo_name != "" {
+        remote::clone_repo(&args.repo);
+        target_dir = HashSet::from([repo_dir]);
+    }
+
+    let stats = repo_stats(target_dir, ignore_dir);
+
+    // Clean up any temp files created
+    if repo_name != "" {
         fs::remove_dir_all(repo_dir).unwrap();
     }
 
