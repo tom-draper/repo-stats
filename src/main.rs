@@ -8,6 +8,7 @@ use std::{
 };
 mod extensions;
 mod view;
+mod remote;
 use walkdir::WalkDir;
 
 #[derive(Debug)]
@@ -126,10 +127,18 @@ fn is_target_file(path: &Path, target_dir: &HashSet<&str>, ignore_dir: &HashSet<
 }
 
 fn main() {
+    let repo = "tom-draper/typing-speed";
+    remote::clone_repo(repo);
+    let repo_name = repo.split("/").collect::<Vec<&str>>()[1];
+    let repo_dir: &str = &format!("temp-{}", repo_name);
+
     let mut stats = Stats::default();
 
     let extensions = extensions::Extensions::default();
-    let target_dir = HashSet::from([]);
+    let mut target_dir = HashSet::from([]);
+    if repo.len() > 0{
+        target_dir = HashSet::from([repo_dir]);
+    }
     let ignore_dir = HashSet::from(["target"]);
 
     for f in WalkDir::new(".").into_iter().filter_map(|f| f.ok()) {
@@ -169,6 +178,10 @@ fn main() {
                 }
             }
         }
+    }
+
+    if repo.len() > 0 {
+        fs::remove_dir_all(repo_dir).unwrap();
     }
 
     view::display_stats(stats);
