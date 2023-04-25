@@ -12,7 +12,7 @@ cargo build --release
 
 This builds the executable in `/target/release`.
 
-Adding a path to this .exe as an environment variable will allow it to be run from within any directory.
+Setting the path to `repo-stats.exe` as an environment variable will allow it to be run in the terminal from within any directory.
 
 ## Usage
 
