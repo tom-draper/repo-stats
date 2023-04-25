@@ -145,24 +145,30 @@ fn repo_stats(target_dir: HashSet<&str>, ignore_dir: HashSet<&str>) -> Stats {
         if !is_target_file(path, &target_dir, &ignore_dir) {
             continue;
         }
-        let file_contents = fs::read_to_string(path);
-        if file_contents.is_err() {
-            continue;
-        }
         
-        let code = file_contents.unwrap();
-        // Add one line for final line
-        let lines = (code.matches("\n").count() + 1) as u64;
-        let cr = (code.matches("\r").count() + 1) as u64;
-        let whitespace = code.matches(' ').count() as u64;
-        let length = code.len() as u64;
-        stats.total.inc(0, ByteSize(0), lines, length, whitespace, cr);
         if path.extension().is_none() {
             continue;
         }
+        
+        let file_contents = fs::read_to_string(path);
+        let readable = file_contents.is_ok();
+
         let ext = path.extension().unwrap().to_str().unwrap();
-        if extensions.is_source_code(ext) {
-            stats.code.total.inc(1, filesize, lines, length, whitespace, cr);
+        if readable && extensions.is_source_code(ext) {
+            let code = file_contents.unwrap();
+            // Add one line for final line
+            let lines = (code.matches("\n").count() + 1) as u64;
+            let cr = (code.matches("\r").count() + 1) as u64;
+            let whitespace = code.matches(' ').count() as u64;
+            let length = code.len() as u64;
+            stats
+                .total
+                .inc(0, ByteSize(0), lines, length, whitespace, cr);
+            stats
+                .code
+                .total
+                .inc(1, filesize, lines, length, whitespace, cr);
+            
             let language = stats.code.languages.entry(ext.to_owned()).or_default();
             language.inc(1, filesize, lines, length, whitespace, cr);
         } else if extensions.is_binary(ext) {
@@ -198,17 +204,17 @@ fn main() {
     if args.target != "" {
         target_dir = args.ignore.split(",").collect();
     }
-    
+
     // Build repo info if repo arg has been specified
     let mut repo_name: &str = &args.repo;
-    if repo_name.contains("/"){
+    if repo_name.contains("/") {
         repo_name = args.repo.split("/").collect::<Vec<&str>>()[1];
     } else if repo_name != "" {
         println!("Error: Repo name invalid\nRequired pattern: <user>/<repo>");
-        return
+        return;
     }
     let repo_dir: &str = &format!("temp-{}", repo_name);
-    
+
     // If repo has been specified, use as target dir instead
     if repo_name != "" {
         remote::clone_repo(&args.repo);
@@ -224,3 +230,4 @@ fn main() {
 
     view::display_stats(stats);
 }
+
