@@ -12,6 +12,8 @@ cargo build --release
 
 This builds the executable in `/target/release`.
 
+Adding a path to this .exe as an environment variable will allow it to be run from within any directory.
+
 ## Usage
 
 When the program is run without arguments, the process will be started in the current directory, checking all subfolders recursively and logging all files.
