@@ -135,39 +135,39 @@ fn repo_stats(target_dir: HashSet<&str>, ignore_dir: HashSet<&str>) -> Stats {
     for f in WalkDir::new(".").into_iter().filter_map(|f| f.ok()) {
         let metadata = f.metadata().unwrap();
         if metadata.is_file() {
-            let path = f.path();
-            stats.total.files += 1;
-            let filesize = ByteSize(metadata.len());
-            stats.total.memory += filesize;
+            continue;
+        }
+        let path = f.path();
+        stats.total.files += 1;
+        let filesize = ByteSize(metadata.len());
+        stats.total.memory += filesize;
 
-            if is_target_file(path, &target_dir, &ignore_dir) {
-                let file_contents = fs::read_to_string(path);
-                if file_contents.is_ok() {
-                    let code = file_contents.unwrap();
-                    // Add one line for final line
-                    let lines = (code.matches("\n").count() + 1) as u64;
-                    let cr = (code.matches("\r").count() + 1) as u64;
-                    let whitespace = code.matches(' ').count() as u64;
-                    let length = code.len() as u64;
-                    stats
-                        .total
-                        .inc(0, ByteSize(0), lines, length, whitespace, cr);
-                    if path.extension().is_some() {
-                        let ext = path.extension().unwrap().to_str().unwrap();
-                        if extensions.is_source_code(ext) {
-                            stats
-                                .code
-                                .total
-                                .inc(1, filesize, lines, length, whitespace, cr);
-                            let language = stats.code.languages.entry(ext.to_owned()).or_default();
-                            language.inc(1, filesize, lines, length, whitespace, cr);
-                        } else if extensions.is_binary(ext) {
-                            stats.binary.files += 1;
-                            stats.binary.memory += filesize;
-                        }
-                    }
-                }
-            }
+        if !is_target_file(path, &target_dir, &ignore_dir) {
+            continue;
+        }
+        let file_contents = fs::read_to_string(path);
+        if !file_contents.is_ok() {
+            continue;
+        }
+        
+        let code = file_contents.unwrap();
+        // Add one line for final line
+        let lines = (code.matches("\n").count() + 1) as u64;
+        let cr = (code.matches("\r").count() + 1) as u64;
+        let whitespace = code.matches(' ').count() as u64;
+        let length = code.len() as u64;
+        stats.total.inc(0, ByteSize(0), lines, length, whitespace, cr);
+        if !path.extension().is_some() {
+            continue;
+        }
+        let ext = path.extension().unwrap().to_str().unwrap();
+        if extensions.is_source_code(ext) {
+            stats.code.total.inc(1, filesize, lines, length, whitespace, cr);
+            let language = stats.code.languages.entry(ext.to_owned()).or_default();
+            language.inc(1, filesize, lines, length, whitespace, cr);
+        } else if extensions.is_binary(ext) {
+            stats.binary.files += 1;
+            stats.binary.memory += filesize;
         }
     }
     stats
