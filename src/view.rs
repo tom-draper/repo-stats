@@ -44,7 +44,7 @@ fn display_total(total: &Total, indent: i32) {
     println!(
         "{}Carridge returns: {:>width$}",
         padding,
-        format!("{}", total.cr).yellow(),
+        format!("{}", total.cr.to_formatted_string(&Locale::en)).yellow(),
         width = width - 11
     );
 }
