@@ -1,6 +1,6 @@
 # Repo Stats
 
-A tool for generating statistical overview for a local repository including metrics like line count, average line length and proportion of whitespace, broken down by language.
+A command-line tool for generating statistical overview for a local repository including metrics like line count, average line length and proportion of whitespace, broken down by file extension.
 
 ## Installation
 
