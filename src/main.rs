@@ -134,7 +134,7 @@ fn repo_stats(target_dir: HashSet<&str>, ignore_dir: HashSet<&str>) -> Stats {
     let extensions = extensions::Extensions::default();
     for f in WalkDir::new(".").into_iter().filter_map(|f| f.ok()) {
         let metadata = f.metadata().unwrap();
-        if metadata.is_file() {
+        if !metadata.is_file() {
             continue;
         }
         let path = f.path();
@@ -146,7 +146,7 @@ fn repo_stats(target_dir: HashSet<&str>, ignore_dir: HashSet<&str>) -> Stats {
             continue;
         }
         let file_contents = fs::read_to_string(path);
-        if !file_contents.is_ok() {
+        if file_contents.is_err() {
             continue;
         }
         
@@ -157,7 +157,7 @@ fn repo_stats(target_dir: HashSet<&str>, ignore_dir: HashSet<&str>) -> Stats {
         let whitespace = code.matches(' ').count() as u64;
         let length = code.len() as u64;
         stats.total.inc(0, ByteSize(0), lines, length, whitespace, cr);
-        if !path.extension().is_some() {
+        if path.extension().is_none() {
             continue;
         }
         let ext = path.extension().unwrap().to_str().unwrap();
