@@ -16,15 +16,23 @@ Setting the path to `repo-stats.exe` as an environment variable will allow it to
 
 ## Usage
 
-When the program is run without arguments, the process will be started in the current directory, checking all subfolders recursively and logging all files.
+When run without arguments the program will target the current directory, scanning all subfolders recursively and logging all files.
 
 ```bash
 repo-stats
 ```
 
+#### Path
+
+A path to the directory to scan files within can be specified with the `-p` or `--path` flag followed by the path. If this argument is excluded, the current working directory is used as default.
+
+```bash
+repo-stats -p <path>
+```
+
 #### Ignore directory
 
-A specific directory can be ignored with the `-i` or `--ignore` flag followed by the name of the directory to ignore. Any directory path containing this directory name will be ignored.
+A specific directory can be ignored with the `-i` or `--ignore` flag followed by the name of the directory to ignore. Any directory path containing this directory name will be ignored. The directory names provided must be relative to the selected path (either specified by the path argument or the current working directory).  
 
 ```bash
 repo-stats -i bin
@@ -38,10 +46,16 @@ repo-stats -i bin,target,.vscode
 
 #### Target directory
 
-A specific directory can be targeted using the '-t' or '--target' flag followed by the name of the directory to target. Only paths containing this target directory will be used.
+A specific directory can be targeted using the '-t' or '--target' flag followed by the name of the directory to target. Only paths containing this target directory will be used. The directory names provided must be relative to the selected path (either specified by the path argument or the current working directory).  
 
 ```bash
 repo-stats -t src
+```
+
+To target multiple directories, separate the directory names by commas.
+
+```bash
+repo-stats -t src,example,test
 ```
 
 #### Remote repository
