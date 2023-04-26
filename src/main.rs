@@ -129,10 +129,10 @@ fn is_target_file(path: &Path, target_dir: &HashSet<&str>, ignore_dir: &HashSet<
     return true;
 }
 
-fn repo_stats(target_dir: HashSet<&str>, ignore_dir: HashSet<&str>) -> Stats {
+fn repo_stats(path: &str, target_dir: HashSet<&str>, ignore_dir: HashSet<&str>) -> Stats {
     let mut stats = Stats::default();
     let extensions = extensions::Extensions::default();
-    for f in WalkDir::new(".").into_iter().filter_map(|f| f.ok()) {
+    for f in WalkDir::new(path).into_iter().filter_map(|f| f.ok()) {
         let metadata = f.metadata().unwrap();
         if !metadata.is_file() {
             continue;
@@ -182,6 +182,9 @@ fn repo_stats(target_dir: HashSet<&str>, ignore_dir: HashSet<&str>) -> Stats {
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
+    #[arg(short, long, default_value("."))]
+    path: String,
+
     #[arg(short, long, default_value(""))]
     repo: String,
 
@@ -195,39 +198,44 @@ struct Args {
 fn main() {
     let args = Args::parse();
 
-    // Build ignore and target dirs from any args
-    let mut ignore_dir = HashSet::from([]);
-    let mut target_dir = HashSet::from([]);
+    let mut path = args.path;
+
+    // Build any ignore and target dirs from args
+    let ignore_dir: HashSet<&str>;
     if args.ignore != "" {
         ignore_dir = args.ignore.split(",").collect();
+    } else {
+        ignore_dir = HashSet::from([])
     }
+    let mut target_dir: HashSet<&str>;
     if args.target != "" {
-        target_dir = args.ignore.split(",").collect();
+        target_dir = args.target.split(",").collect();
+    } else {
+        target_dir = HashSet::from([])
     }
 
     // Build repo info if repo arg has been specified
-    let mut repo_name: &str = &args.repo;
+    let mut repo_name = args.repo.as_str();
     if repo_name.contains("/") {
         repo_name = args.repo.split("/").collect::<Vec<&str>>()[1];
     } else if repo_name != "" {
         println!("Error: Repo name invalid\nRequired pattern: <user>/<repo>");
         return;
     }
-    let repo_dir: &str = &format!("temp-{}", repo_name);
-
+    let repo_dir  = format!("temp-{}", repo_name);
     // If repo has been specified, use as target dir instead
     if repo_name != "" {
         remote::clone_repo(&args.repo);
-        target_dir = HashSet::from([repo_dir]);
+        target_dir = HashSet::from([repo_dir.as_str()]);
+        path = String::from(".");
     }
 
-    let stats = repo_stats(target_dir, ignore_dir);
+    let stats = repo_stats(&path, target_dir, ignore_dir);
 
     // Clean up any temp files created
     if repo_name != "" {
-        fs::remove_dir_all(repo_dir).unwrap();
+        fs::remove_dir_all(&repo_dir).unwrap();
     }
 
     view::display_stats(stats);
 }
-
