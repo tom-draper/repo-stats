@@ -24,7 +24,7 @@ repo-stats
 
 #### Path
 
-A path to the directory to scan files within can be specified with the `-p` or `--path` flag followed by the path. If this argument is excluded, the current working directory is used as default.
+A path to the target repo directory can be specified with the `-p` or `--path` flag followed by the path. If this argument is excluded, the current working directory is used as default.
 
 ```bash
 repo-stats -p <path>
