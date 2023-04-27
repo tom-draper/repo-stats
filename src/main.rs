@@ -11,6 +11,7 @@ mod remote;
 mod view;
 use clap::Parser;
 use walkdir::WalkDir;
+use indicatif::ProgressBar;
 
 #[derive(Debug)]
 pub struct Stats {
@@ -26,7 +27,7 @@ struct Total {
     lines: u64,
     chars: u64,
     whitespace: u64,
-    cr: u64,
+    crlf: u64,
 }
 
 #[derive(Debug)]
@@ -43,7 +44,7 @@ impl Default for Total {
             lines: 0,
             chars: 0,
             whitespace: 0,
-            cr: 0,
+            crlf: 0,
         }
     }
 }
@@ -56,14 +57,14 @@ impl Total {
         lines: u64,
         chars: u64,
         whitespace: u64,
-        cr: u64,
+        crlf: u64,
     ) {
         self.files += files;
         self.memory += memory;
         self.lines += lines;
         self.chars += chars;
         self.whitespace += whitespace;
-        self.cr += cr;
+        self.crlf += crlf;
     }
 }
 
@@ -132,6 +133,10 @@ fn is_target_file(path: &Path, target_dir: &HashSet<&str>, ignore_dir: &HashSet<
 fn repo_stats(path: &str, target_dir: HashSet<&str>, ignore_dir: HashSet<&str>) -> Stats {
     let mut stats = Stats::default();
     let extensions = extensions::Extensions::default();
+
+    let num_files = WalkDir::new(path).into_iter().count() as u64;
+    let progress_bar = ProgressBar::new(num_files);
+
     for f in WalkDir::new(path).into_iter().filter_map(|f| f.ok()) {
         let metadata = f.metadata().unwrap();
         if !metadata.is_file() {
@@ -158,23 +163,24 @@ fn repo_stats(path: &str, target_dir: HashSet<&str>, ignore_dir: HashSet<&str>) 
             let code = file_contents.unwrap();
             // Add one line for final line
             let lines = (code.matches("\n").count() + 1) as u64;
-            let cr = (code.matches("\r").count() + 1) as u64;
+            let crlf = (code.matches("\r\n").count() > 0) as u64;
             let whitespace = code.matches(' ').count() as u64;
             let length = code.len() as u64;
             stats
                 .total
-                .inc(0, ByteSize(0), lines, length, whitespace, cr);
+                .inc(0, ByteSize(0), lines, length, whitespace, crlf);
             stats
                 .code
                 .total
-                .inc(1, filesize, lines, length, whitespace, cr);
+                .inc(1, filesize, lines, length, whitespace, crlf);
             
             let language = stats.code.languages.entry(ext.to_owned()).or_default();
-            language.inc(1, filesize, lines, length, whitespace, cr);
+            language.inc(1, filesize, lines, length, whitespace, crlf);
         } else if extensions.is_binary(ext) {
             stats.binary.files += 1;
             stats.binary.memory += filesize;
         }
+        progress_bar.inc(1);
     }
     stats
 }
