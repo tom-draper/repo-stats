@@ -3,49 +3,49 @@ use colored::Colorize;
 use num_format::{Locale, ToFormattedString};
 
 fn display_total(total: &Total, indent: i32) {
-    let width = 28 - indent as usize;
+    let width = 29 - indent as usize;
     let padding = (0..indent).map(|_| " ").collect::<String>();
     println!(
         "{}Files: {:>width$}",
         padding,
         format!("{}", total.files.to_formatted_string(&Locale::en)).yellow(),
-        width = width
+        width = width - 1
     );
     println!(
         "{}Lines: {:>width$}",
         padding,
         format!("{}", total.lines.to_formatted_string(&Locale::en)).yellow(),
-        width = width
+        width = width - 1
     );
     println!(
         "{}Characters: {:>width$}",
         padding,
         format!("{}", total.chars.to_formatted_string(&Locale::en)).yellow(),
-        width = width - 5
+        width = width - 6
     );
     println!(
         "{}Average line length: {:>width$}",
         padding,
         format!("{:.1}", total.avg_line_len()).yellow(),
-        width = width - 14
+        width = width - 15
     );
     println!(
         "{}Whitespace: {:>width$}",
         padding,
         format!("{:.2}%", total.per_whitespace()).yellow(),
-        width = width - 5
+        width = width - 6
     );
     println!(
         "{}Memory: {:>width$}",
         padding,
         format!("{}", total.memory).yellow(),
-        width = width - 1
+        width = width - 2
     );
     println!(
-        "{}Carridge returns: {:>width$}",
+        "{}CRLF: {:>width$}",
         padding,
-        format!("{}", total.cr.to_formatted_string(&Locale::en)).yellow(),
-        width = width - 11
+        format!("{:.2}%", total.crlf / total.files).yellow(),
+        width = width
     );
 }
 
