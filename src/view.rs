@@ -32,7 +32,7 @@ fn display_total(total: &Total, indent: i32) {
     println!(
         "{}Whitespace: {:>width$}",
         padding,
-        format!("{:.2}%", total.per_whitespace()).yellow(),
+        format!("{:.2}%", total.percent_whitespace()).yellow(),
         width = width - 6
     );
     println!(
@@ -44,7 +44,7 @@ fn display_total(total: &Total, indent: i32) {
     println!(
         "{}CRLF: {:>width$}",
         padding,
-        format!("{:.2}%", total.crlf / total.files).yellow(),
+        format!("{:.2}%", total.percent_clrf()).yellow(),
         width = width
     );
 }
