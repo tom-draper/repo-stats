@@ -10,8 +10,8 @@ mod extensions;
 mod remote;
 mod view;
 use clap::Parser;
-use walkdir::WalkDir;
 use indicatif::ProgressBar;
+use walkdir::WalkDir;
 
 #[derive(Debug)]
 pub struct Stats {
@@ -95,14 +95,21 @@ impl Total {
         if self.lines == 0 {
             return 0.0;
         }
-        self.chars as f32 / self.lines as f32
+        (self.chars / self.lines) as f32
     }
 
-    fn per_whitespace(&self) -> f32 {
+    fn percent_whitespace(&self) -> f32 {
         if self.chars == 0 {
             return 0.0;
         }
-        (self.whitespace as f32 / self.chars as f32) * 100.0
+        (self.whitespace / self.chars) as f32 * 100.0
+    }
+
+    fn percent_clrf(&self) -> f32 {
+        if self.files == 0 {
+            return 0.0;
+        }
+        (self.crlf / self.files) as f32 * 100.0
     }
 }
 
@@ -150,11 +157,11 @@ fn repo_stats(path: &str, target_dir: HashSet<&str>, ignore_dir: HashSet<&str>) 
         if !is_target_file(path, &target_dir, &ignore_dir) {
             continue;
         }
-        
+
         if path.extension().is_none() {
             continue;
         }
-        
+
         let file_contents = fs::read_to_string(path);
         let readable = file_contents.is_ok();
 
@@ -173,7 +180,7 @@ fn repo_stats(path: &str, target_dir: HashSet<&str>, ignore_dir: HashSet<&str>) 
                 .code
                 .total
                 .inc(1, filesize, lines, length, whitespace, crlf);
-            
+
             let language = stats.code.languages.entry(ext.to_owned()).or_default();
             language.inc(1, filesize, lines, length, whitespace, crlf);
         } else if extensions.is_binary(ext) {
@@ -228,7 +235,7 @@ fn main() {
         println!("Error: Repo name invalid\nRequired pattern: <user>/<repo>");
         return;
     }
-    let repo_dir  = format!("temp-{}", repo_name);
+    let repo_dir = format!("temp-{}", repo_name);
     // If repo has been specified, use as target dir instead
     if repo_name != "" {
         remote::clone_repo(&args.repo);
@@ -245,3 +252,4 @@ fn main() {
 
     view::display_stats(stats);
 }
+
